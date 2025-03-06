@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=3 uid="uid://ksg413gpoenl"]
+
+[ext_resource type="Script" uid="uid://bkweetukgck5o" path="res://game_board.gd" id="1_8l4tr"]
+[ext_resource type="PackedScene" uid="uid://bopdov1a6utoh" path="res://game_piece.tscn" id="2_7fpns"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_vtd53"]
+size = Vector3(20, 0.1, 20)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4o0v5"]
+size = Vector3(10, 1, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8l4tr"]
+size = Vector3(10, 1, 10)
+
+[node name="BoardScene" type="Node3D"]
+
+[node name="GameBoard" type="StaticBody3D" parent="."]
+script = ExtResource("1_8l4tr")
+piece_scene = ExtResource("2_7fpns")
+
+[node name="BoardDragSurface" type="Area3D" parent="GameBoard"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GameBoard/BoardDragSurface"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("BoxShape3D_vtd53")
+disabled = true
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GameBoard"]
+shape = SubResource("BoxShape3D_4o0v5")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="GameBoard"]
+mesh = SubResource("BoxMesh_8l4tr")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 7.17698, 7.22512)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-3.09086e-08, -0.707107, 0.707107, -3.09086e-08, 0.707107, 0.707107, -1, 0, -4.37114e-08, 3.33795, 1.25678, 0)
+
+[connection signal="input_event" from="GameBoard" to="GameBoard" method="_on_input_event"]
+[connection signal="input_event" from="GameBoard/BoardDragSurface" to="GameBoard" method="_on_board_drag_surface_input_event"]

@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://bopdov1a6utoh"]
+
+[ext_resource type="Script" uid="uid://ddf6nu434s0is" path="res://game_piece.gd" id="1_kocjm"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_pog5f"]
+height = 1.0
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_kocjm"]
+height = 1.0
+radial_segments = 24
+rings = 2
+
+[node name="GamePiece" type="RigidBody3D"]
+mass = 0.1
+script = ExtResource("1_kocjm")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CylinderShape3D_pog5f")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("CylinderMesh_kocjm")
+
+[connection signal="input_event" from="." to="." method="_on_input_event"]
