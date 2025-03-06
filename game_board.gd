@@ -17,7 +17,7 @@ func toggle_drag(drag: bool, set_drag_object: Node3D = null) -> void:
         drag_object.toggle_drag(drag)
 
 
-func _on_input_event(camera: Node, event: InputEvent, event_position: Vector3, normal: Vector3, shape_idx: int) -> void:
+func _on_input_event(_camera: Node, event: InputEvent, event_position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
     if event is InputEventMouseButton:
         if event.button_index == MouseButton.MOUSE_BUTTON_RIGHT && event.pressed:
             var piece = piece_scene.instantiate()
@@ -25,7 +25,7 @@ func _on_input_event(camera: Node, event: InputEvent, event_position: Vector3, n
             scene.add_child(piece)
 
 
-func _on_board_drag_surface_input_event(camera: Node, event: InputEvent, event_position: Vector3, normal: Vector3, shape_idx: int) -> void:
+func _on_board_drag_surface_input_event(_camera: Node, event: InputEvent, event_position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
     if event is InputEventMouseMotion:
         drag_location = event_position
     if event is InputEventMouseButton:
