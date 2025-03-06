@@ -19,3 +19,9 @@ config/icon="res://icon.svg"
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+
+[xr]
+
+openxr/form_factor=1
+openxr/view_configuration=0
+openxr/environment_blend_mode=2
