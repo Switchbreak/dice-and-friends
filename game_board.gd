@@ -8,6 +8,7 @@ extends StaticBody3D
 
 var drag_object: Node3D
 
+
 func toggle_drag(drag: bool, set_drag_object: Node3D = null) -> void:
     drag_surface.disabled = !drag
 
