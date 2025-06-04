@@ -1,0 +1,97 @@
+[gd_scene load_steps=4 format=3 uid="uid://w05xb6tloh76"]
+
+[ext_resource type="Script" uid="uid://dtmkg16l0injo" path="res://lobby.gd" id="1_ns5g5"]
+[ext_resource type="Script" uid="uid://bw4r5g1aondyo" path="res://player_list.gd" id="2_tjped"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ns5g5"]
+font_size = 36
+
+[node name="Lobby" type="Control"]
+top_level = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_ns5g5")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.301961, 0.301961, 0.301961, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -53.0
+offset_top = 39.0
+offset_right = 53.0
+offset_bottom = 89.0
+grow_horizontal = 2
+text = "Lobby"
+label_settings = SubResource("LabelSettings_ns5g5")
+horizontal_alignment = 1
+vertical_alignment = 1
+justification_flags = 162
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 158.0
+offset_right = 890.0
+offset_bottom = 588.0
+
+[node name="Chat" type="RichTextLabel" parent="PanelContainer"]
+layout_mode = 2
+scroll_following = true
+
+[node name="ChatLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 130.0
+offset_right = 73.0
+offset_bottom = 153.0
+text = "Chat"
+
+[node name="PlayersLabel" type="Label" parent="."]
+offset_left = 909.0
+offset_top = 130.0
+offset_right = 966.0
+offset_bottom = 153.0
+text = "Players"
+
+[node name="PlayerList" type="ItemList" parent="."]
+layout_mode = 0
+offset_left = 909.0
+offset_top = 158.0
+offset_right = 1132.0
+offset_bottom = 626.0
+script = ExtResource("2_tjped")
+
+[node name="ChatMessage" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 595.0
+offset_right = 830.0
+offset_bottom = 626.0
+placeholder_text = "Send message to lobby chat"
+
+[node name="SendChatMessage" type="Button" parent="."]
+layout_mode = 0
+offset_left = 842.0
+offset_top = 595.0
+offset_right = 889.0
+offset_bottom = 626.0
+text = "Send"
+
+[connection signal="player_connected" from="." to="PlayerList" method="_on_lobby_player_connected"]
+[connection signal="player_disconnected" from="." to="PlayerList" method="_on_lobby_player_disconnected"]
+[connection signal="text_submitted" from="ChatMessage" to="." method="_on_send_chat_message" unbinds=1]
+[connection signal="pressed" from="SendChatMessage" to="." method="_on_send_chat_message"]
