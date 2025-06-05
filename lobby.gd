@@ -36,18 +36,18 @@ func create_table():
 
     var ips = IP.get_local_addresses()
     $ServerIPLabel.visible = true
-    $ServerIP.text = ips[ips.size() - 1]
+    $ServerIP.text = ips[ips.size() - 1] + ":" + str(TableValues.DEFAULT_PORT)
     $ServerIP.visible = true
 
     _init_lobby()
     show_chat_message("Table created by %s" % TableValues.player_info.name)
 
 
-func join_table(address: String = ""):
+func join_table(address: String = "", port: int = TableValues.DEFAULT_PORT):
     if address.is_empty():
         address = TableValues.DEFAULT_SERVER_IP
     var peer = ENetMultiplayerPeer.new()
-    var error = peer.create_client(address, TableValues.DEFAULT_PORT)
+    var error = peer.create_client(address, port)
     if error:
         return error
     multiplayer.multiplayer_peer = peer
