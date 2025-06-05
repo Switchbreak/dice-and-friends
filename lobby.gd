@@ -1,19 +1,11 @@
 extends Node
 
-signal player_connected(peer_id, player_info, is_self)
+signal player_connected(peer_id)
 signal player_disconnected(peer_id)
 signal server_disconnected
 
-const DEFAULT_SERVER_IP = "127.0.0.1" # IPv4 localhost
-const PORT = 7000
-
 @onready var chat := $PanelContainer/Chat
 @onready var chat_message := $ChatMessage
-
-var players = {}
-var player_info = { "name": "Name" }
-var chat_log = []
-
 
 func _ready() -> void:
     multiplayer.peer_connected.connect(_on_player_connected)
@@ -23,31 +15,33 @@ func _ready() -> void:
     multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 
-func join_game(address = ""):
+func create_table():
+    var peer = ENetMultiplayerPeer.new()
+    var error = peer.create_server(TableValues.DEFAULT_PORT)
+    if error:
+        return error
+    multiplayer.multiplayer_peer = peer
+    var player_id = peer.get_unique_id()
+    TableValues.player_info.is_host = true
+    TableValues.players[player_id] = TableValues.player_info
+    player_connected.emit(player_id)
+    show_chat_message("Table created by %s" % TableValues.player_info.name)
+
+
+func join_table(address: String = ""):
     if address.is_empty():
-        address = DEFAULT_SERVER_IP
+        address = TableValues.DEFAULT_SERVER_IP
     var peer = ENetMultiplayerPeer.new()
-    var error = peer.create_client(address, PORT)
+    var error = peer.create_client(address, TableValues.DEFAULT_PORT)
     if error:
         return error
     multiplayer.multiplayer_peer = peer
-    player_info.host = false
-
-
-func create_game():
-    var peer = ENetMultiplayerPeer.new()
-    var error = peer.create_server(PORT)
-    if error:
-        return error
-    multiplayer.multiplayer_peer = peer
-    player_info.host = true
-    player_connected.emit(peer.get_unique_id(), player_info, true)
-    show_chat_message("Lobby created by %s" % player_info.name)
+    TableValues.player_info.is_host = false
 
 
 func remove_multiplayer_peer():
     multiplayer.multiplayer_peer = null
-    players.clear()
+    TableValues.players.clear()
     show_chat_message("Disconnected from lobby")
 
 
@@ -64,35 +58,36 @@ func show_chat_message(message: String) -> void:
     chat.add_text(sanitize_message(message) + "\n")
 
 
-func send_chat_message(message: String, sender_player_info = player_info) -> void:
+func send_chat_message(message: String, sender_player_info = TableValues.player_info) -> void:
     receive_chat_message.rpc(sender_player_info, message)
     show_chat_message(sender_player_info.name + ": " + message)
 
 
-
 @rpc("any_peer", "reliable")
 func _register_player(new_player_info):
-    var new_player_id = multiplayer.get_remote_sender_id()
-    players[new_player_id] = new_player_info
-    player_connected.emit(new_player_id, new_player_info, false)
+    var new_player_id := multiplayer.get_remote_sender_id()
+    new_player_info.is_self = false
+    TableValues.players[new_player_id] = new_player_info
+    player_connected.emit(new_player_id)
     if multiplayer.is_server():
         send_chat_message("%s has entered the lobby" % new_player_info.name, { "name": "Server" })
 
 
-func _on_player_connected(id):
-    _register_player.rpc_id(id, player_info)
+func _on_player_connected(id: int):
+    _register_player.rpc_id(id, TableValues.player_info)
 
 
-func _on_player_disconnected(id):
-    show_chat_message("%s has left the lobby" % players[id].name)
-    players.erase(id)
+func _on_player_disconnected(id: int):
+    if TableValues.players[id]:
+        show_chat_message("%s has left the lobby" % TableValues.players[id].name)
+        TableValues.players.erase(id)
     player_disconnected.emit(id)
 
 
 func _on_connected_ok():
     var peer_id = multiplayer.get_unique_id()
-    players[peer_id] = player_info
-    player_connected.emit(peer_id, player_info, true)
+    TableValues.players[peer_id] = TableValues.player_info
+    player_connected.emit(peer_id)
     show_chat_message("Successfully connected to lobby")
 
 

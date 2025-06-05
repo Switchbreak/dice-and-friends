@@ -5,15 +5,15 @@ var lobby_scene := preload("res://lobby_scene.tscn").instantiate()
 
 
 func init_lobby_scene() -> void:
-    lobby_scene.player_info.name = player_name.text
+    TableValues.player_info.name = player_name.text
     add_child(lobby_scene)
 
 
 func _on_host_game_pressed() -> void:
     init_lobby_scene()
-    lobby_scene.create_game()
+    lobby_scene.create_table()
 
 
 func _on_join_game_pressed() -> void:
     init_lobby_scene()
-    lobby_scene.join_game()
+    lobby_scene.join_table()

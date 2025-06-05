@@ -92,7 +92,7 @@ offset_right = 889.0
 offset_bottom = 626.0
 text = "Send"
 
-[connection signal="player_connected" from="." to="PlayerList" method="refresh_list" unbinds=1]
-[connection signal="player_disconnected" from="." to="PlayerList" method="refresh_list" unbinds=1]
+[connection signal="player_connected" from="." to="PlayerList" method="refresh_list"]
+[connection signal="player_disconnected" from="." to="PlayerList" method="refresh_list"]
 [connection signal="text_submitted" from="ChatMessage" to="." method="_on_send_chat_message" unbinds=1]
 [connection signal="pressed" from="SendChatMessage" to="." method="_on_send_chat_message"]
