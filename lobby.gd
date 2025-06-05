@@ -33,6 +33,12 @@ func create_table():
     TableValues.player_info.is_host = true
     TableValues.players[player_id] = TableValues.player_info
     player_connected.emit(player_id)
+
+    var ips = IP.get_local_addresses()
+    $ServerIPLabel.visible = true
+    $ServerIP.text = ips[ips.size() - 1]
+    $ServerIP.visible = true
+
     _init_lobby()
     show_chat_message("Table created by %s" % TableValues.player_info.name)
 
@@ -46,6 +52,8 @@ func join_table(address: String = ""):
         return error
     multiplayer.multiplayer_peer = peer
     TableValues.player_info.is_host = false
+    $ServerIPLabel.visible = false
+    $ServerIP.visible = false
     _init_lobby()
 
 
