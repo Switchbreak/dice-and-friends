@@ -1,10 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://w05xb6tloh76"]
+[gd_scene load_steps=6 format=3 uid="uid://w05xb6tloh76"]
 
 [ext_resource type="Script" uid="uid://dtmkg16l0injo" path="res://lobby.gd" id="1_ns5g5"]
 [ext_resource type="Script" uid="uid://bw4r5g1aondyo" path="res://player_list.gd" id="2_tjped"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ns5g5"]
 font_size = 36
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_tjped"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tjped"]
+content_margin_left = 5.0
+bg_color = Color(0.180392, 0.180392, 0.180392, 1)
 
 [node name="Lobby" type="Control"]
 top_level = true
@@ -83,6 +89,7 @@ offset_top = 595.0
 offset_right = 830.0
 offset_bottom = 626.0
 placeholder_text = "Send message to lobby chat"
+keep_editing_on_text_submit = true
 
 [node name="SendChatMessage" type="Button" parent="."]
 layout_mode = 0
@@ -92,7 +99,42 @@ offset_right = 889.0
 offset_bottom = 626.0
 text = "Send"
 
+[node name="ExitLobby" type="Button" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 39.0
+offset_right = 73.0
+offset_bottom = 97.0
+theme_override_font_sizes/font_size = 36
+theme_override_styles/normal = SubResource("StyleBoxEmpty_tjped")
+text = "⬅"
+
+[node name="ServerIPLabel" type="Label" parent="."]
+visible = false
+offset_left = 889.0
+offset_top = 39.0
+offset_right = 955.0
+offset_bottom = 62.0
+text = "Server IP:"
+
+[node name="ServerIP" type="RichTextLabel" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 966.0
+offset_top = 39.0
+offset_right = 1132.0
+offset_bottom = 62.0
+focus_mode = 2
+theme_override_colors/default_color = Color(0.699653, 0.699653, 0.699653, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_tjped")
+scroll_active = false
+context_menu_enabled = true
+selection_enabled = true
+deselect_on_focus_loss_enabled = false
+drag_and_drop_selection_enabled = false
+
 [connection signal="player_connected" from="." to="PlayerList" method="refresh_list" unbinds=1]
 [connection signal="player_disconnected" from="." to="PlayerList" method="refresh_list" unbinds=1]
 [connection signal="text_submitted" from="ChatMessage" to="." method="_on_send_chat_message" unbinds=1]
 [connection signal="pressed" from="SendChatMessage" to="." method="_on_send_chat_message"]
+[connection signal="pressed" from="ExitLobby" to="." method="_on_exit_lobby"]

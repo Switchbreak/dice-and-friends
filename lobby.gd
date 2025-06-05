@@ -6,6 +6,7 @@ signal server_disconnected
 
 @onready var chat := $PanelContainer/Chat
 @onready var chat_message := $ChatMessage
+@onready var send_chat_button := $SendChatMessage
 
 func _ready() -> void:
     multiplayer.peer_connected.connect(_on_player_connected)
@@ -13,6 +14,13 @@ func _ready() -> void:
     multiplayer.connected_to_server.connect(_on_connected_ok)
     multiplayer.connection_failed.connect(_on_connected_fail)
     multiplayer.server_disconnected.connect(_on_server_disconnected)
+
+
+func _init_lobby() -> void:
+    TableValues.chat_log.clear()
+    chat.clear()
+    send_chat_button.disabled = false
+    chat_message.grab_focus()
 
 
 func create_table():
@@ -25,6 +33,7 @@ func create_table():
     TableValues.player_info.is_host = true
     TableValues.players[player_id] = TableValues.player_info
     player_connected.emit(player_id)
+    _init_lobby()
     show_chat_message("Table created by %s" % TableValues.player_info.name)
 
 
@@ -37,6 +46,7 @@ func join_table(address: String = ""):
         return error
     multiplayer.multiplayer_peer = peer
     TableValues.player_info.is_host = false
+    _init_lobby()
 
 
 func remove_multiplayer_peer():
@@ -98,9 +108,16 @@ func _on_connected_fail():
 func _on_server_disconnected():
     remove_multiplayer_peer()
     server_disconnected.emit()
+    send_chat_button.disabled = true
 
 
 func _on_send_chat_message() -> void:
-    send_chat_message(chat_message.text)
-    chat_message.clear()
-    chat_message.grab_focus()
+    if !send_chat_button.disabled:
+        send_chat_message(chat_message.text)
+        chat_message.clear()
+        chat_message.grab_focus.call_deferred()
+
+
+func _on_exit_lobby() -> void:
+    remove_multiplayer_peer()
+    get_parent().remove_child(self)
