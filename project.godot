@@ -24,6 +24,10 @@ TableValues="*res://table_values.gd"
 version_control/plugin_name="GitPlugin"
 version_control/autoload_on_startup=true
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/script-ide/plugin.cfg")
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"

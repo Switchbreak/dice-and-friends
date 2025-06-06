@@ -17,3 +17,5 @@ mono_crash.*.json
 
 # Android build large files
 android/
+/.vscode
+/addons
