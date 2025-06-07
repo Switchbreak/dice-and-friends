@@ -51,6 +51,7 @@ grow_vertical = 2
 text = "Table Address: "
 
 [node name="JoinIP" type="LineEdit" parent="JoinPanel"]
+layout_mode = 0
 offset_left = 130.0
 offset_top = 54.5
 offset_right = 297.0
@@ -59,6 +60,7 @@ placeholder_text = "IP address"
 max_length = 32
 
 [node name="JoinPort" type="LineEdit" parent="JoinPanel"]
+layout_mode = 0
 offset_left = 130.0
 offset_top = 96.0
 offset_right = 297.0

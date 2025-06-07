@@ -1,7 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://w05xb6tloh76"]
+[gd_scene load_steps=7 format=3 uid="uid://w05xb6tloh76"]
 
 [ext_resource type="Script" uid="uid://dtmkg16l0injo" path="res://lobby.gd" id="1_ns5g5"]
 [ext_resource type="Script" uid="uid://bw4r5g1aondyo" path="res://player_list.gd" id="2_tjped"]
+[ext_resource type="Script" uid="uid://dfi5ekgw1fvcy" path="res://signal_server.gd" id="3_f7hjm"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ns5g5"]
 font_size = 36
@@ -111,6 +112,7 @@ text = "⬅"
 
 [node name="ServerIPLabel" type="Label" parent="."]
 visible = false
+layout_mode = 0
 offset_left = 889.0
 offset_top = 39.0
 offset_right = 955.0
@@ -132,6 +134,9 @@ context_menu_enabled = true
 selection_enabled = true
 deselect_on_focus_loss_enabled = false
 drag_and_drop_selection_enabled = false
+
+[node name="SignalServer" type="Node" parent="."]
+script = ExtResource("3_f7hjm")
 
 [connection signal="player_connected" from="." to="PlayerList" method="refresh_list" unbinds=1]
 [connection signal="player_disconnected" from="." to="PlayerList" method="refresh_list" unbinds=1]
