@@ -233,8 +233,10 @@ func _register_player(new_player_info, index: int) -> void:
     new_player_info.is_self = false
     TableValues.players[index] = new_player_info
     player_connected.emit(index)
-    if multiplayer.is_server():
-        send_chat_message("%s has entered the lobby" % new_player_info.name, { "name": "Server" })
+    if not new_player_info.preexisting:
+        show_chat_message("%s has entered the lobby" % new_player_info.name)
+    elif new_player_info.is_host:
+        show_chat_message("Connected to lobby")
 
 
 func _connect_peer(index: int, preexisting: bool) -> Error:
