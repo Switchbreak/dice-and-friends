@@ -13,6 +13,7 @@ class Peer extends RefCounted:
     var socket := WebSocketPeer.new()
     var name := "Player"
     var id_set := false
+    var is_host := false
 
     func _init(stream_peer: StreamPeerTCP) -> void:
         socket.accept_stream(stream_peer)
@@ -61,6 +62,8 @@ func poll() -> void:
 func _connect_peer() -> void:
     var peer := Peer.new(tcp_server.take_connection())
     var index := randi() % (1 << 31)
+    if peers.is_empty():
+        peer.is_host = true
     peers[index] = peer
     print("Peer connected: " + peer.get_address())
 
@@ -91,13 +94,21 @@ func _handle_peer_message(from_index: int, packet: String) -> Error:
     var message: Dictionary = JSON.parse_string(packet)
 
     if message.type == Message.PEER_CONNECT:
-        peers[from_index].name = message.data
+        peers[from_index].name = message.data.name
         for index in peers:
             if index != from_index:
                 # Send existing peers the index of the new peer
                 peers[index].socket.send_text(JSON.stringify({ "type": Message.PEER_CONNECT, "peer_index": from_index, "data": message.data }))
                 # Send the new peer a message for each existing peer
-                peers[from_index].socket.send_text(JSON.stringify({ "type": Message.PEER_CONNECT, "peer_index": index, "data": peers[index].name }))
+                peers[from_index].socket.send_text(JSON.stringify({
+                    "type": Message.PEER_CONNECT,
+                    "peer_index": index,
+                    "data": {
+                        "name": peers[index].name,
+                        "is_host": peers[index].is_host,
+                        "preexisting": true,
+                    },
+                }))
     else:
         var destination := peers[int(message.peer_index)]
         destination.socket.send_text(JSON.stringify({ "type": message.type, "peer_index": from_index, "data": message.data }))

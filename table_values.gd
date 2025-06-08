@@ -8,7 +8,8 @@ var chat_log: Array[String]
 var player_info = {
     "name": "Name",
     "is_host": false,
-    "is_self": true
+    "is_self": true,
+    "preexisting": false,
 }
 
 var server_ip := DEFAULT_SERVER_IP

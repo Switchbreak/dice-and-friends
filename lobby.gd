@@ -65,7 +65,7 @@ func _matchmaking_server_disconnected() -> void:
     printerr("Disconnected from matchmaking server: %d - %s" % [code, reason])
 
 
-func _matchmaking_server_send(type: int, data: String, index: int = -1) -> void:
+func _matchmaking_server_send(type: int, data: Variant, index: int = -1) -> void:
     matchmaking_socket.send_text(JSON.stringify({
         "type": type,
         "data": data,
@@ -81,7 +81,7 @@ func _poll_matchmaking_server() -> void:
         _receive_matchmaking_messages()
         if state != prev_state:
             # When connection first opens, send notification to matchmaking server
-            _matchmaking_server_send(signal_server.Message.PEER_CONNECT, TableValues.player_info.name)
+            _matchmaking_server_send(signal_server.Message.PEER_CONNECT, TableValues.player_info)
 
     elif state == WebSocketPeer.STATE_CLOSED and state != prev_state:
         _matchmaking_server_disconnected()
@@ -114,8 +114,8 @@ func _handle_matchmaking_message(packet: String) -> Error:
         signal_server.Message.SET_ID:
             init_rtc(peer_index)
         signal_server.Message.PEER_CONNECT:
-            _register_player({"name": message.data}, peer_index)
-            _connect_peer(peer_index)
+            _register_player(message.data, peer_index)
+            _connect_peer(peer_index, message.data.preexisting)
         signal_server.Message.PEER_DISCONNECT:
             _on_player_disconnected(peer_index)
         signal_server.Message.OFFER:
@@ -229,17 +229,15 @@ func send_chat_message(message: String, sender_player_info = TableValues.player_
 
 
 @rpc("any_peer", "reliable")
-func _register_player(new_player_info, index) -> void:
-    #var new_player_id := multiplayer.get_remote_sender_id()
+func _register_player(new_player_info, index: int) -> void:
     new_player_info.is_self = false
-    new_player_info.is_host = false
     TableValues.players[index] = new_player_info
     player_connected.emit(index)
     if multiplayer.is_server():
         send_chat_message("%s has entered the lobby" % new_player_info.name, { "name": "Server" })
 
 
-func _connect_peer(index: int) -> Error:
+func _connect_peer(index: int, preexisting: bool) -> Error:
     var peer := WebRTCPeerConnection.new()
     var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
 
@@ -249,7 +247,10 @@ func _connect_peer(index: int) -> Error:
     peer.session_description_created.connect(_offer_created.bind(index))
     peer.ice_candidate_created.connect(_candidate_created.bind(index))
     rtc_peer.add_peer(peer, index)
-    if not TableValues.player_info.is_host:
+
+    # Existing peers will create offer when a new peer connects, the new peer
+    # should not create an offer for existing peers
+    if not preexisting:
         peer.create_offer()
 
     return OK
