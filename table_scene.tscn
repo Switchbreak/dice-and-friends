@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://ksg413gpoenl"]
 
-[ext_resource type="Script" uid="uid://bkweetukgck5o" path="res://game_board.gd" id="1_8l4tr"]
-[ext_resource type="PackedScene" uid="uid://bopdov1a6utoh" path="res://game_piece.tscn" id="2_7fpns"]
+[ext_resource type="Script" uid="uid://bkweetukgck5o" path="res://game_board.gd" id="1_pp44f"]
+[ext_resource type="PackedScene" uid="uid://bopdov1a6utoh" path="res://game_piece.tscn" id="2_vqvwb"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vtd53"]
 size = Vector3(20, 0.1, 20)
@@ -12,11 +12,11 @@ size = Vector3(10, 1, 10)
 [sub_resource type="BoxMesh" id="BoxMesh_8l4tr"]
 size = Vector3(10, 1, 10)
 
-[node name="BoardScene" type="Node3D"]
+[node name="TableScene" type="Node3D"]
 
 [node name="GameBoard" type="StaticBody3D" parent="."]
-script = ExtResource("1_8l4tr")
-piece_scene = ExtResource("2_7fpns")
+script = ExtResource("1_pp44f")
+piece_scene = ExtResource("2_vqvwb")
 
 [node name="BoardDragSurface" type="Area3D" parent="GameBoard"]
 
