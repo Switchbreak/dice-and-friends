@@ -50,31 +50,13 @@ func poll() -> void:
         var state := peers[index].socket.get_ready_state()
         if state == WebSocketPeer.STATE_OPEN:
             if not peers[index].id_set:
-                peers[index].socket.send_text(JSON.stringify({ "type": Message.SET_ID, "peer_index": index }))
-                peers[index].id_set = true
+                _set_peer_id(peers[index], index)
             _receive_peer_messages(index)
         elif state == WebSocketPeer.STATE_CLOSED:
             disconnected.append(index)
 
     for peer in disconnected:
         _disconnect_peer(peer)
-
-func _connect_peer() -> void:
-    var peer := Peer.new(tcp_server.take_connection())
-    var index := randi() % (1 << 31)
-    if peers.is_empty():
-        peer.is_host = true
-    peers[index] = peer
-    print("Peer connected: " + peer.get_address())
-
-func _disconnect_peer(index: int) -> void:
-    peers.erase(index)
-    print("Peer disconnected: %d" % index)
-
-    for remaining_peer in peers:
-        # Send existing peers notification of disconnection
-        peers[remaining_peer].socket.send_text(JSON.stringify({ "type": Message.PEER_DISCONNECT, "peer_index": index, "data": "" }))
-
 
 func _receive_peer_messages(index: int) -> Error:
     while peers[index].socket.get_available_packet_count():
@@ -93,24 +75,77 @@ func _receive_peer_messages(index: int) -> Error:
 func _handle_peer_message(from_index: int, packet: String) -> Error:
     var message: Dictionary = JSON.parse_string(packet)
 
+    # Forward PEER_CONNECT messages to entire peer list, all other types to
+    # just the destination peer
+    var error: Error
     if message.type == Message.PEER_CONNECT:
-        peers[from_index].name = message.data.name
-        for index in peers:
-            if index != from_index:
-                # Send existing peers the index of the new peer
-                peers[index].socket.send_text(JSON.stringify({ "type": Message.PEER_CONNECT, "peer_index": from_index, "data": message.data }))
-                # Send the new peer a message for each existing peer
-                peers[from_index].socket.send_text(JSON.stringify({
-                    "type": Message.PEER_CONNECT,
-                    "peer_index": index,
-                    "data": {
-                        "name": peers[index].name,
-                        "is_host": peers[index].is_host,
-                        "preexisting": true,
-                    },
-                }))
+        error = _handle_peer_connection(from_index, message)
     else:
-        var destination := peers[int(message.peer_index)]
-        destination.socket.send_text(JSON.stringify({ "type": message.type, "peer_index": from_index, "data": message.data }))
+        error = _send_peer_message(peers[int(message.peer_index)], message.type, from_index, message.data)
 
-    return OK
+    return error
+
+func _handle_peer_connection(from_index: int, message: Dictionary) -> Error:
+    peers[from_index].name = message.data.name
+
+    var errors: Array[Error]
+    for index in peers:
+        if index != from_index:
+            # Send existing peers the index of the new peer
+            var error := _send_peer_message(peers[index], Message.PEER_CONNECT, from_index, message.data)
+            if error:
+                errors.append(error)
+
+            # Send the new peer a message for each existing peer
+            error = _send_peer_message(
+                peers[from_index],
+                Message.PEER_CONNECT,
+                index,
+                {
+                    "name": peers[index].name,
+                    "is_host": peers[index].is_host,
+                    "preexisting": true,
+                })
+            if error:
+                errors.append(error)
+
+    if errors.is_empty():
+        return OK
+    else:
+        return errors[0]
+
+func _connect_peer() -> void:
+    var peer := Peer.new(tcp_server.take_connection())
+    var index := randi() % (1 << 31)
+    if peers.is_empty():
+        peer.is_host = true
+    peers[index] = peer
+    print("Peer connected: " + peer.get_address())
+
+func _set_peer_id(peer: Peer, index: int) -> Error:
+    peer.id_set = true
+    return _send_peer_message(peer, Message.SET_ID, index)
+
+func _disconnect_peer(index: int) -> Error:
+    peers.erase(index)
+    print("Peer disconnected: %d" % index)
+
+    # Send existing peers notification of disconnection
+    var errors: Array[Error]
+    for remaining_peer in peers:
+        var error := _send_peer_message(peers[remaining_peer], Message.PEER_DISCONNECT, index)
+        if error:
+            errors.append(error)
+
+    if errors.is_empty():
+        return OK
+    else:
+        return errors[0]
+
+func _send_peer_message(peer: Peer, type: Message, index: int, data: Variant = {}) -> Error:
+    var packet := JSON.stringify({ "type": type, "peer_index": index, "data": data })
+    var error := peer.socket.send_text(packet)
+    if error:
+        printerr("Failed to send packet %s to peer %s" % [packet, peer.name])
+
+    return error
