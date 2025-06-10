@@ -4,7 +4,6 @@ extends Node
 @onready var chat_message := $ChatMessage
 @onready var send_chat_button := $SendChatMessage
 @onready var client := $MultiplayerClient
-@onready var server := $SignalServer
 
 func _process(_delta: float) -> void:
     client.poll_matchmaking_server()
@@ -15,11 +14,6 @@ func _init_lobby() -> void:
     chat_message.grab_focus()
 
 func create_table(player_name: String) -> Error:
-    # Start matchmaking server - for debugging purposes only
-    var error: Error = server.listen(SignalServer.DEFAULT_PORT)
-    if error:
-        return error
-
     client.player_info.is_host = true
 
     return join_table(SignalServer.DEFAULT_SERVER_IP, SignalServer.DEFAULT_PORT, player_name)
@@ -51,7 +45,6 @@ func _on_send_chat_message() -> void:
 
 func _on_exit_lobby() -> void:
     client.client_disconnect()
-    server.stop()
     get_parent().remove_child(self)
 
 func _on_multiplayer_client_left_table() -> void:

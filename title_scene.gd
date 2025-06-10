@@ -7,6 +7,7 @@ var lobby_scene := preload("res://lobby_scene.tscn").instantiate()
 @onready var join_ip := $JoinPanel/JoinIP
 @onready var join_port := $JoinPanel/JoinPort
 @onready var join_button := $JoinPanel/Join
+@onready var server := $SignalServer
 
 func _ready() -> void:
     join_ip.text = SignalServer.DEFAULT_SERVER_IP
@@ -15,6 +16,10 @@ func _ready() -> void:
 
 func _on_host_game_pressed() -> void:
     add_child(lobby_scene)
+    # Start matchmaking server - for debugging purposes only
+    server.listen(SignalServer.DEFAULT_PORT)
+    lobby_scene.tree_exited.connect(_on_lobby_exit)
+
     lobby_scene.create_table(player_name.text)
 
 func _on_join_game_pressed() -> void:
@@ -43,3 +48,6 @@ func _on_join_ip_text_changed() -> void:
     var port: int = string_to_int(join_port.text)
 
     join_button.disabled = !(ip.is_valid_ip_address() && is_valid_port(port))
+
+func _on_lobby_exit() -> void:
+    server.stop()

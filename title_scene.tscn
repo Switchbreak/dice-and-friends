@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bc8ypnf7van0b"]
+[gd_scene load_steps=4 format=3 uid="uid://bc8ypnf7van0b"]
 
 [ext_resource type="Script" uid="uid://pa1cn1xfgel2" path="res://title_scene.gd" id="1_wkkv4"]
+[ext_resource type="Script" uid="uid://dfi5ekgw1fvcy" path="res://signal_server.gd" id="2_176dl"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_j1uka"]
 font_size = 36
@@ -158,6 +159,10 @@ offset_right = 297.0
 offset_bottom = 35.0
 text = "Player"
 max_length = 32
+
+[node name="SignalServer" type="Node" parent="."]
+script = ExtResource("2_176dl")
+metadata/_custom_type_script = "uid://dfi5ekgw1fvcy"
 
 [connection signal="pressed" from="JoinPanel/Join" to="." method="_on_join_pressed"]
 [connection signal="text_changed" from="JoinPanel/JoinIP" to="." method="_on_join_ip_text_changed" unbinds=1]
