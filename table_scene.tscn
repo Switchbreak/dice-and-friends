@@ -1,7 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://ksg413gpoenl"]
+[gd_scene load_steps=8 format=3 uid="uid://ksg413gpoenl"]
 
+[ext_resource type="Script" uid="uid://baucg08xnhybi" path="res://table_scene.gd" id="1_aj76b"]
 [ext_resource type="Script" uid="uid://bkweetukgck5o" path="res://game_board.gd" id="1_pp44f"]
 [ext_resource type="PackedScene" uid="uid://bopdov1a6utoh" path="res://game_piece.tscn" id="2_vqvwb"]
+[ext_resource type="Script" uid="uid://cv7gh34gaekc0" path="res://multiplayer_client.gd" id="4_1piec"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_vtd53"]
 size = Vector3(20, 0.1, 20)
@@ -13,6 +15,7 @@ size = Vector3(10, 1, 10)
 size = Vector3(10, 1, 10)
 
 [node name="TableScene" type="Node3D"]
+script = ExtResource("1_aj76b")
 
 [node name="GameBoard" type="StaticBody3D" parent="."]
 script = ExtResource("1_pp44f")
@@ -35,7 +38,11 @@ mesh = SubResource("BoxMesh_8l4tr")
 transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 7.17698, 7.22512)
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(-3.09086e-08, -0.707107, 0.707107, -3.09086e-08, 0.707107, 0.707107, -1, 0, -4.37114e-08, 3.33795, 1.25678, 0)
+transform = Transform3D(-0.691597, -0.662704, 0.287258, 0.677632, -0.457656, 0.575644, -0.250016, 0.592769, 0.765583, 3.33795, 1.25678, 0)
+shadow_enabled = true
+
+[node name="MultiplayerClient" type="Node" parent="."]
+script = ExtResource("4_1piec")
 
 [connection signal="input_event" from="GameBoard" to="GameBoard" method="_on_input_event"]
 [connection signal="input_event" from="GameBoard/BoardDragSurface" to="GameBoard" method="_on_board_drag_surface_input_event"]
