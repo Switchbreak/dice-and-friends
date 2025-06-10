@@ -5,6 +5,7 @@ extends StaticBody3D
 
 @onready var scene := owner
 @onready var drag_surface := $"BoardDragSurface/CollisionShape3D"
+@onready var cursor := $"Cursor"
 
 var drag_object: Node3D
 var drag_offset: Vector3
@@ -12,13 +13,13 @@ var drag_offset_set: bool = false
 var pieces: Array[Node3D] = []
 
 func toggle_drag(drag: bool, set_drag_object: Node3D = null) -> void:
-    drag_surface.disabled = !drag
-
     if set_drag_object != null:
         drag_object = set_drag_object
         drag_offset_set = false
     if drag_object != null:
         drag_object.toggle_drag(drag)
+        if not drag:
+            drag_object = null
 
 @rpc("any_peer", "call_local", "reliable")
 func spawn_piece(event_position: Vector3) -> void:
@@ -33,13 +34,14 @@ func drag_piece(index: int, event_position: Vector3) -> void:
         pieces[index].drag_location = event_position
         pieces[index].moving = true
 
-func _on_input_event(_camera: Node, event: InputEvent, event_position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
-    if event is InputEventMouseButton:
-        if event.button_index == MouseButton.MOUSE_BUTTON_RIGHT && event.pressed:
-            spawn_piece.rpc(event_position)
+@rpc("any_peer", "call_remote", "unreliable")
+func move_cursor(event_position: Vector3) -> void:
+    cursor.visible = true
+    cursor.position = event_position
 
 func _on_board_drag_surface_input_event(_camera: Node, event: InputEvent, event_position: Vector3, _normal: Vector3, _shape_idx: int) -> void:
     if event is InputEventMouseMotion:
+        move_cursor.rpc(event_position)
         if drag_object != null:
             if not drag_offset_set:
                 drag_offset = drag_object.position - event_position
@@ -50,3 +52,5 @@ func _on_board_drag_surface_input_event(_camera: Node, event: InputEvent, event_
     if event is InputEventMouseButton:
         if event.button_index == MouseButton.MOUSE_BUTTON_LEFT && !event.pressed:
             toggle_drag(false)
+        if event.button_index == MouseButton.MOUSE_BUTTON_RIGHT && event.pressed:
+            spawn_piece.rpc(event_position)
