@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://w05xb6tloh76"]
+[gd_scene load_steps=8 format=3 uid="uid://w05xb6tloh76"]
 
 [ext_resource type="Script" uid="uid://dtmkg16l0injo" path="res://lobby.gd" id="1_ns5g5"]
 [ext_resource type="Script" uid="uid://bw4r5g1aondyo" path="res://player_list.gd" id="2_tjped"]
 [ext_resource type="Script" uid="uid://dfi5ekgw1fvcy" path="res://signal_server.gd" id="3_f7hjm"]
+[ext_resource type="Script" uid="uid://cv7gh34gaekc0" path="res://multiplayer_client.gd" id="4_e8ysf"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ns5g5"]
 font_size = 36
@@ -138,8 +139,15 @@ drag_and_drop_selection_enabled = false
 [node name="SignalServer" type="Node" parent="."]
 script = ExtResource("3_f7hjm")
 
-[connection signal="player_connected" from="." to="PlayerList" method="refresh_list" unbinds=1]
-[connection signal="player_disconnected" from="." to="PlayerList" method="refresh_list" unbinds=1]
+[node name="MultiplayerClient" type="Node" parent="."]
+script = ExtResource("4_e8ysf")
+
 [connection signal="text_submitted" from="ChatMessage" to="." method="_on_send_chat_message" unbinds=1]
 [connection signal="pressed" from="SendChatMessage" to="." method="_on_send_chat_message"]
 [connection signal="pressed" from="ExitLobby" to="." method="_on_exit_lobby"]
+[connection signal="joined_table" from="MultiplayerClient" to="PlayerList" method="refresh_list"]
+[connection signal="left_table" from="MultiplayerClient" to="." method="_on_multiplayer_client_left_table"]
+[connection signal="player_connected" from="MultiplayerClient" to="." method="_on_multiplayer_client_player_connected"]
+[connection signal="player_connected" from="MultiplayerClient" to="PlayerList" method="refresh_list" unbinds=1]
+[connection signal="player_disconnected" from="MultiplayerClient" to="." method="_on_multiplayer_client_player_disconnected"]
+[connection signal="player_disconnected" from="MultiplayerClient" to="PlayerList" method="refresh_list" unbinds=1]

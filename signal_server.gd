@@ -1,5 +1,7 @@
 extends Node
 
+class_name SignalServer
+
 enum Message {
     SET_ID,
     PEER_CONNECT,
@@ -8,6 +10,10 @@ enum Message {
     ANSWER,
     CANDIDATE,
 }
+
+# Matchmaking server defaults
+const DEFAULT_SERVER_IP = "127.0.0.1" # IPv4 localhost
+const DEFAULT_PORT = 7000
 
 class Peer extends RefCounted:
     var socket := WebSocketPeer.new()
@@ -29,13 +35,18 @@ func _process(_delta: float) -> void:
 
 func stop() -> void:
     if tcp_server.is_listening():
-        print("Matchmaking server stopped")
         tcp_server.stop()
+        print("Matchmaking server stopped")
 
 func listen(port: int) -> Error:
     stop()
+    var error := tcp_server.listen(port)
     print("Matchmaking server started")
-    return tcp_server.listen(port)
+
+    if error:
+        printerr("Failed to start to matchmaking server: " + error_string(error))
+
+    return error
 
 func poll() -> void:
     if not tcp_server.is_listening():

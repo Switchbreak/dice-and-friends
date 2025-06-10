@@ -15,10 +15,6 @@ run/main_scene="uid://bc8ypnf7van0b"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[autoload]
-
-TableValues="*res://table_values.gd"
-
 [editor]
 
 version_control/plugin_name="GitPlugin"
