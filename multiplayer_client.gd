@@ -7,13 +7,14 @@ signal left_table()
 
 const DEFAULT_STUN_SERVER: String = "stun:stun.l.google.com:19302"
 
-var players := {}
+var players: Dictionary[String, Dictionary] = {}
 var chat_log: Array[String]
-var player_info = {
+var player_info: Dictionary = {
     "name": "Name",
     "is_host": false,
     "is_self": true,
     "preexisting": false,
+    "peer_id": 0,
 }
 
 var server_ip := SignalServer.DEFAULT_SERVER_IP
@@ -40,7 +41,7 @@ func _matchmaking_server_disconnected() -> void:
     var reason := matchmaking_socket.get_close_reason()
     printerr("Disconnected from matchmaking server: %d - %s" % [code, reason])
 
-func _matchmaking_server_send(type: int, data: Variant, index: int = -1) -> Error:
+func _matchmaking_server_send(type: int, data: Variant, index: String = "") -> Error:
     var packet := JSON.stringify({
         "type": type,
         "data": data,
@@ -90,7 +91,7 @@ func _handle_matchmaking_message(packet: String) -> Error:
     print(player_info.name + ": Received packet from matchmaking server: " + packet)
 
     var message: Dictionary = JSON.parse_string(packet)
-    var peer_index := int(message.peer_index)
+    var peer_index: String = message.peer_index
 
     match int(message.type):
         SignalServer.Message.SET_ID:
@@ -102,32 +103,37 @@ func _handle_matchmaking_message(packet: String) -> Error:
             _disconnect_peer(peer_index)
         SignalServer.Message.OFFER:
             var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
+            var peer_id: int = players[peer_index].peer_id
             print(player_info.name + ": Offer received")
-            if rtc_peer.has_peer(peer_index):
-                rtc_peer.get_peer(peer_index).connection.set_remote_description("offer", message.data)
+            if rtc_peer.has_peer(peer_id):
+                rtc_peer.get_peer(peer_id).connection.set_remote_description("offer", message.data)
         SignalServer.Message.ANSWER:
             var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
+            var peer_id: int = players[peer_index].peer_id
             print(player_info.name + ": Answer received")
-            if rtc_peer.has_peer(peer_index):
-                rtc_peer.get_peer(peer_index).connection.set_remote_description("answer", message.data)
+            if rtc_peer.has_peer(peer_id):
+                rtc_peer.get_peer(peer_id).connection.set_remote_description("answer", message.data)
         SignalServer.Message.CANDIDATE:
             var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
+            var peer_id: int = players[peer_index].peer_id
             print(player_info.name + ": Candidate received")
             var candidate: PackedStringArray = message.data.split("\n", false)
-            if rtc_peer.has_peer(peer_index):
-                rtc_peer.get_peer(peer_index).connection.add_ice_candidate(candidate[0], candidate[1].to_int(), candidate[2])
+            if rtc_peer.has_peer(peer_id):
+                rtc_peer.get_peer(peer_id).connection.add_ice_candidate(candidate[0], candidate[1].to_int(), candidate[2])
 
     return OK
 
 #endregion
 
-func init_rtc(index: int) -> Error:
+func init_rtc(index: String) -> Error:
     var peer := WebRTCMultiplayerPeer.new()
-    var error := peer.create_mesh(index)
+    var peer_id := peer.generate_unique_id()
+    var error := peer.create_mesh(peer_id)
     if error:
         return error
     multiplayer.multiplayer_peer = peer
 
+    player_info.peer_id = peer_id
     players[index] = player_info
     joined_table.emit()
 
@@ -143,21 +149,24 @@ func client_disconnect():
     chat_log.clear()
     left_table.emit()
 
-func _register_player(new_player_info: Dictionary, index: int) -> void:
+func _register_player(new_player_info: Dictionary, index: String) -> void:
     new_player_info.is_self = false
     players[index] = new_player_info
     player_connected.emit(index)
 
-func _connect_peer(index: int, preexisting: bool) -> Error:
+func _connect_peer(index: String, preexisting: bool) -> Error:
     var peer := WebRTCPeerConnection.new()
     var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
+
+    var peer_id := rtc_peer.generate_unique_id()
+    players[index].peer_id = peer_id
 
     peer.initialize({
         "iceServers": [ { "urls": [DEFAULT_STUN_SERVER] } ],
     })
     peer.session_description_created.connect(_offer_created.bind(index))
     peer.ice_candidate_created.connect(_candidate_created.bind(index))
-    var error := rtc_peer.add_peer(peer, index)
+    var error := rtc_peer.add_peer(peer, peer_id)
     if error:
         printerr("Failed to add WebRTC peer: " + error_string(error))
         return error
@@ -172,26 +181,26 @@ func _connect_peer(index: int, preexisting: bool) -> Error:
 
     return OK
 
-func _offer_created(type: String, data: String, index: int) -> void:
+func _offer_created(type: String, data: String, index: String) -> void:
     print(player_info.name + ": Offer created")
     var rtc_peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
-    rtc_peer.get_peer(index).connection.set_local_description(type, data)
+    rtc_peer.get_peer(players[index].peer_id).connection.set_local_description(type, data)
     if type == "offer":
         _matchmaking_server_send(SignalServer.Message.OFFER, data, index)
     else:
         _matchmaking_server_send(SignalServer.Message.ANSWER, data, index)
 
-func _candidate_created(mid_name: String, index_name: int, sdp_name: String, index: int) -> void:
+func _candidate_created(mid_name: String, index_name: int, sdp_name: String, index: String) -> void:
     print(player_info.name + ": Candidate created")
     _matchmaking_server_send(SignalServer.Message.CANDIDATE, "\n%s\n%d\n%s" % [mid_name, index_name, sdp_name], index)
 
-func _disconnect_peer(id: int):
+func _disconnect_peer(index: String):
     var peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
-    var player: Dictionary = players[id]
+    var player: Dictionary = players[index]
 
-    if peer.has_peer(id):
-        peer.remove_peer(id)
-    if players.has(id):
-        players.erase(id)
+    if peer.has_peer(player.peer_id):
+        peer.remove_peer(player.peer_id)
+    if players.has(index):
+        players.erase(index)
 
     player_disconnected.emit(player)

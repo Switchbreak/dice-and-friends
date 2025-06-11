@@ -28,7 +28,7 @@ class Peer extends RefCounted:
         return "%s:%d" % [socket.get_connected_host(), socket.get_connected_port()]
 
 var tcp_server := TCPServer.new()
-var peers: Dictionary[int, Peer] = {}
+var peers: Dictionary[String, Peer] = {}
 
 func _process(_delta: float) -> void:
     poll()
@@ -55,7 +55,7 @@ func poll() -> void:
     if tcp_server.is_connection_available():
         _connect_peer()
 
-    var disconnected: Array[int] = []
+    var disconnected: Array[String] = []
     for index in peers:
         peers[index].socket.poll()
         var state := peers[index].socket.get_ready_state()
@@ -69,7 +69,7 @@ func poll() -> void:
     for peer in disconnected:
         _disconnect_peer(peer)
 
-func _receive_peer_messages(index: int) -> Error:
+func _receive_peer_messages(index: String) -> Error:
     while peers[index].socket.get_available_packet_count():
         var packet := peers[index].socket.get_packet().get_string_from_utf8()
         var error := peers[index].socket.get_packet_error()
@@ -83,7 +83,7 @@ func _receive_peer_messages(index: int) -> Error:
 
     return OK
 
-func _handle_peer_message(from_index: int, packet: String) -> Error:
+func _handle_peer_message(from_index: String, packet: String) -> Error:
     var message: Dictionary = JSON.parse_string(packet)
 
     # Forward PEER_CONNECT messages to entire peer list, all other types to
@@ -92,11 +92,11 @@ func _handle_peer_message(from_index: int, packet: String) -> Error:
     if message.type == Message.PEER_CONNECT:
         error = _handle_peer_connection(from_index, message)
     else:
-        error = _send_peer_message(peers[int(message.peer_index)], message.type, from_index, message.data)
+        error = _send_peer_message(peers[message.peer_index], message.type, from_index, message.data)
 
     return error
 
-func _handle_peer_connection(from_index: int, message: Dictionary) -> Error:
+func _handle_peer_connection(from_index: String, message: Dictionary) -> Error:
     peers[from_index].name = message.data.name
 
     var errors: Array[Error]
@@ -127,19 +127,19 @@ func _handle_peer_connection(from_index: int, message: Dictionary) -> Error:
 
 func _connect_peer() -> void:
     var peer := Peer.new(tcp_server.take_connection())
-    var index := randi() % (1 << 31)
+    var index := str(randi() % (1 << 31))
     if peers.is_empty():
         peer.is_host = true
     peers[index] = peer
     print("Peer connected: " + peer.get_address())
 
-func _set_peer_id(peer: Peer, index: int) -> Error:
+func _set_peer_id(peer: Peer, index: String) -> Error:
     peer.id_set = true
     return _send_peer_message(peer, Message.SET_ID, index)
 
-func _disconnect_peer(index: int) -> Error:
+func _disconnect_peer(index: String) -> Error:
     peers.erase(index)
-    print("Peer disconnected: %d" % index)
+    print("Peer disconnected: %s" % index)
 
     # Send existing peers notification of disconnection
     var errors: Array[Error]
@@ -153,7 +153,7 @@ func _disconnect_peer(index: int) -> Error:
     else:
         return errors[0]
 
-func _send_peer_message(peer: Peer, type: Message, index: int, data: Variant = {}) -> Error:
+func _send_peer_message(peer: Peer, type: Message, index: String, data: Variant = {}) -> Error:
     var packet := JSON.stringify({ "type": type, "peer_index": index, "data": data })
     var error := peer.socket.send_text(packet)
     if error:
