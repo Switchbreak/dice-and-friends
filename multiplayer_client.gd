@@ -199,11 +199,11 @@ func _candidate_created(mid_name: String, index_name: int, sdp_name: String, ind
 
 func _disconnect_peer(index: String):
     var peer: WebRTCMultiplayerPeer = multiplayer.multiplayer_peer
-    var player: Dictionary = players[index]
-
-    if peer.has_peer(player.peer_id):
-        peer.remove_peer(player.peer_id)
     if players.has(index):
+        var player: Dictionary = players[index]
+
+        if peer.has_peer(player.peer_id):
+            peer.remove_peer(player.peer_id)
         players.erase(index)
 
-    player_disconnected.emit(player)
+        player_disconnected.emit(player)
