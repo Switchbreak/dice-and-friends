@@ -138,7 +138,7 @@ func init_rtc(index: String) -> Error:
 
     player_info.peer_id = peer_id
     players[index] = player_info
-    joined_table.emit()
+    joined_table.emit(player_info.lobby_id)
 
     return OK
 
