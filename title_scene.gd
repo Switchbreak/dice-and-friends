@@ -19,6 +19,8 @@ func _on_host_game_pressed() -> void:
 
 func _on_join_game_pressed() -> void:
     join_panel.visible = !join_panel.visible
+    if join_panel.visible:
+        table_id_input.grab_focus.call_deferred()
 
 func _on_table_id_text_changed(new_text: String) -> void:
     join_button.disabled = new_text.is_empty()
