@@ -5,15 +5,8 @@ var lobby_scene := preload("res://table_scene.tscn").instantiate()
 
 @onready var player_name := $SelectName/Name
 @onready var join_panel := $JoinPanel
-@onready var join_ip := $JoinPanel/JoinIP
-@onready var join_port := $JoinPanel/JoinPort
+@onready var table_id_input := $JoinPanel/TableID
 @onready var join_button := $JoinPanel/Join
-@onready var server := $SignalServer
-
-func _ready() -> void:
-    join_ip.text = SignalServer.DEFAULT_SERVER_IP
-    join_port.text = str(SignalServer.DEFAULT_PORT)
-    _on_join_ip_text_changed()
 
 func _show_lobby() -> void:
     add_child(lobby_scene)
@@ -21,39 +14,23 @@ func _show_lobby() -> void:
     visible = false
 
 func _on_host_game_pressed() -> void:
-    # Start matchmaking server - for debugging purposes only
-    server.listen(SignalServer.DEFAULT_PORT)
-
     _show_lobby()
     lobby_scene.create_table(player_name.text)
 
 func _on_join_game_pressed() -> void:
     join_panel.visible = !join_panel.visible
 
-func string_to_int(string: String) -> int:
-    if string.is_valid_int():
-        return string.to_int()
-    else:
-        return -1
-
-func is_valid_port(port: int) -> bool:
-    return port > 0 && port <= 65535
+func _on_table_id_text_changed(new_text: String) -> void:
+    join_button.disabled = new_text.is_empty()
 
 func _on_join_pressed() -> void:
-    var ip: String = join_ip.text
-    var port: int = string_to_int(join_port.text)
+    var ip: String = SignalServer.DEFAULT_SERVER_IP
+    var port: int = SignalServer.DEFAULT_PORT
     var player: String = player_name.text
+    var table_id: String = table_id_input.text
 
-    if ip.is_valid_ip_address() and is_valid_port(port):
-        _show_lobby()
-        lobby_scene.join_table(ip, port, player)
-
-func _on_join_ip_text_changed() -> void:
-    var ip: String = join_ip.text
-    var port: int = string_to_int(join_port.text)
-
-    join_button.disabled = !(ip.is_valid_ip_address() && is_valid_port(port))
+    _show_lobby()
+    lobby_scene.join_table(ip, port, player, table_id)
 
 func _on_lobby_exit() -> void:
-    server.stop()
     visible = true

@@ -21,7 +21,7 @@ layout_mode = 0
 offset_left = 424.0
 offset_top = 356.0
 offset_right = 733.0
-offset_bottom = 537.0
+offset_bottom = 495.0
 
 [node name="Join" type="Button" parent="JoinPanel"]
 layout_mode = 1
@@ -31,55 +31,35 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = 88.5
-offset_top = 48.5
+offset_top = 28.5
 offset_right = 142.5
-offset_bottom = 79.5
+offset_bottom = 59.5
 grow_horizontal = 2
 grow_vertical = 2
 disabled = true
 text = "Join"
 
-[node name="SelectIPLabel" type="Label" parent="JoinPanel"]
+[node name="TableIDLabel" type="Label" parent="JoinPanel"]
 layout_mode = 1
 anchors_preset = 4
 anchor_top = 0.5
 anchor_bottom = 0.5
 offset_left = 8.0
-offset_top = -31.0
+offset_top = -14.5
 offset_right = 125.0
-offset_bottom = -8.0
+offset_bottom = 16.5
 grow_vertical = 2
-text = "Table Address: "
+text = "Table ID: "
+vertical_alignment = 1
 
-[node name="JoinIP" type="LineEdit" parent="JoinPanel"]
+[node name="TableID" type="LineEdit" parent="JoinPanel"]
 layout_mode = 0
 offset_left = 130.0
 offset_top = 54.5
 offset_right = 297.0
 offset_bottom = 85.5
-placeholder_text = "IP address"
+placeholder_text = "Table ID"
 max_length = 32
-
-[node name="JoinPort" type="LineEdit" parent="JoinPanel"]
-layout_mode = 0
-offset_left = 130.0
-offset_top = 96.0
-offset_right = 297.0
-offset_bottom = 127.0
-placeholder_text = "Port"
-max_length = 32
-
-[node name="SelectIPLabel2" type="Label" parent="JoinPanel"]
-layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
-offset_left = 8.0
-offset_top = 9.5
-offset_right = 125.0
-offset_bottom = 32.5
-grow_vertical = 2
-text = "Port: "
 
 [node name="Title" type="Label" parent="."]
 layout_mode = 1
@@ -165,9 +145,7 @@ script = ExtResource("2_176dl")
 metadata/_custom_type_script = "uid://dfi5ekgw1fvcy"
 
 [connection signal="pressed" from="JoinPanel/Join" to="." method="_on_join_pressed"]
-[connection signal="text_changed" from="JoinPanel/JoinIP" to="." method="_on_join_ip_text_changed" unbinds=1]
-[connection signal="text_submitted" from="JoinPanel/JoinIP" to="." method="_on_join_pressed" unbinds=1]
-[connection signal="text_changed" from="JoinPanel/JoinPort" to="." method="_on_join_ip_text_changed" unbinds=1]
-[connection signal="text_submitted" from="JoinPanel/JoinPort" to="." method="_on_join_pressed" unbinds=1]
+[connection signal="text_changed" from="JoinPanel/TableID" to="." method="_on_table_id_text_changed"]
+[connection signal="text_submitted" from="JoinPanel/TableID" to="." method="_on_join_pressed" unbinds=1]
 [connection signal="pressed" from="HostGame" to="." method="_on_host_game_pressed"]
 [connection signal="pressed" from="JoinGame" to="." method="_on_join_game_pressed"]

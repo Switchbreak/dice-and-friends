@@ -18,6 +18,24 @@ size = Vector3(10, 1, 10)
 [node name="TableScene" type="Node3D"]
 script = ExtResource("1_aj76b")
 
+[node name="UILayer" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="TableIDLabel" type="Label" parent="UILayer"]
+offset_left = 980.0
+offset_top = 18.0
+offset_right = 1048.0
+offset_bottom = 49.0
+text = "Table ID:"
+vertical_alignment = 1
+
+[node name="TableID" type="LineEdit" parent="UILayer"]
+offset_left = 1052.0
+offset_top = 18.0
+offset_right = 1140.0
+offset_bottom = 49.0
+editable = false
+
 [node name="GameBoard" type="StaticBody3D" parent="."]
 script = ExtResource("1_pp44f")
 piece_scene = ExtResource("2_vqvwb")
@@ -52,3 +70,4 @@ script = ExtResource("4_1piec")
 
 [connection signal="input_event" from="GameBoard" to="GameBoard" method="_on_input_event"]
 [connection signal="input_event" from="GameBoard/BoardDragSurface" to="GameBoard" method="_on_board_drag_surface_input_event"]
+[connection signal="joined_table" from="MultiplayerClient" to="." method="_on_multiplayer_client_joined_table"]

@@ -1,8 +1,8 @@
 extends Node
 
-signal player_connected(peer_id)
-signal player_disconnected(peer_id)
-signal joined_table()
+signal player_connected(peer_id: String)
+signal player_disconnected(peer_id: String)
+signal joined_table(lobby_id: String)
 signal left_table()
 
 const DEFAULT_STUN_SERVER: String = "stun:stun.l.google.com:19302"
@@ -15,6 +15,7 @@ var player_info: Dictionary = {
     "is_self": true,
     "preexisting": false,
     "peer_id": 0,
+    "lobby_id": "",
 }
 
 var server_ip := SignalServer.DEFAULT_SERVER_IP
@@ -24,9 +25,9 @@ var prev_state: WebSocketPeer.State
 
 #region Matchmaking server communication
 
-func matchmaking_server_connect(address: String, port: int) -> Error:
+func matchmaking_server_connect(address: String, port: int, lobby_id: String) -> Error:
     prev_state = WebSocketPeer.STATE_CONNECTING
-    var error := matchmaking_socket.connect_to_url("ws://%s:%s" % [address, port])
+    var error := matchmaking_socket.connect_to_url("ws://%s:%s/%s" % [address, port, lobby_id])
     if error:
         printerr("Failed to connect to matchmaking server: " + error_string(error))
 
@@ -96,6 +97,8 @@ func _handle_matchmaking_message(packet: String) -> Error:
     match int(message.type):
         SignalServer.Message.SET_ID:
             init_rtc(peer_index)
+            player_info.lobby_id = message.data.lobby_id
+            joined_table.emit(player_info.lobby_id)
         SignalServer.Message.PEER_CONNECT:
             _register_player(message.data, peer_index)
             _connect_peer(peer_index, message.data.preexisting)
