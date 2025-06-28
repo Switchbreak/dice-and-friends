@@ -5,6 +5,8 @@ signal player_disconnected(peer_id: String)
 signal joined_table(lobby_id: String)
 signal left_table()
 
+var config = ConfigFile.new()
+
 const DEFAULT_STUN_SERVER: String = "stun:stun.l.google.com:19302"
 
 var players: Dictionary[String, Dictionary] = {}
@@ -22,6 +24,26 @@ var server_ip := SignalServer.DEFAULT_SERVER_IP
 var server_port := SignalServer.DEFAULT_PORT
 var matchmaking_socket := WebSocketPeer.new()
 var prev_state: WebSocketPeer.State
+
+var ice_servers: Array[Dictionary] = []
+
+
+func _ready() -> void:
+    var err := config.load("res://config.cfg")
+
+    if err:
+        print_debug("Failed to open config.cfg", error_string(err))
+        ice_servers = [{ "urls": [DEFAULT_STUN_SERVER] }]
+        return
+
+    if config.has_section_key('ice_servers', 'stun_server'):
+        ice_servers.append({ "urls": [config.get_value('ice_servers', 'stun_server')]})
+    if config.has_section_key('ice_servers', 'turn_server'):
+        ice_servers.append({
+            "urls": [config.get_value('ice_servers', 'turn_server')],
+            "username": config.get_value('ice_servers', 'turn_username'),
+            "credential": config.get_value('ice_servers', 'turn_credential'),
+        })
 
 #region Matchmaking server communication
 
@@ -164,9 +186,7 @@ func _connect_peer(index: String, preexisting: bool) -> Error:
     var peer_id := rtc_peer.generate_unique_id()
     players[index].peer_id = peer_id
 
-    peer.initialize({
-        "iceServers": [ { "urls": [DEFAULT_STUN_SERVER] } ],
-    })
+    peer.initialize({ "iceServers": ice_servers })
     peer.session_description_created.connect(_offer_created.bind(index))
     peer.ice_candidate_created.connect(_candidate_created.bind(index))
     var error := rtc_peer.add_peer(peer, peer_id)

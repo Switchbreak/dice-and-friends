@@ -1,0 +1,8 @@
+;fill in these values and copy this file to config.cfg before running
+;will fall back to google's STUN server at stun:stun.l.google.com:19302 if empty
+
+[ice_servers]
+stun_server=""
+turn_server=""
+turn_username=""
+turn_credential=""
