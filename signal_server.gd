@@ -12,8 +12,8 @@ enum Message {
 }
 
 # Matchmaking server defaults
-const DEFAULT_SERVER_IP = "127.0.0.1" # IPv4 localhost
-const DEFAULT_PORT = 7000
+const DEFAULT_SERVER_IP = "match.coriolis.space" # IPv4 localhost
+const DEFAULT_PORT = 443
 
 class Peer extends RefCounted:
     var socket := WebSocketPeer.new()

@@ -49,7 +49,7 @@ func _ready() -> void:
 
 func matchmaking_server_connect(address: String, port: int, lobby_id: String) -> Error:
     prev_state = WebSocketPeer.STATE_CONNECTING
-    var error := matchmaking_socket.connect_to_url("ws://%s:%s/%s" % [address, port, lobby_id])
+    var error := matchmaking_socket.connect_to_url("wss://%s:%s/%s" % [address, port, lobby_id])
     if error:
         printerr("Failed to connect to matchmaking server: " + error_string(error))
 
